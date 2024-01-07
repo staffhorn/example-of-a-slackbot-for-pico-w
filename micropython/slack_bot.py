@@ -8,7 +8,7 @@ import json
 
 import websocket_client
 
-from urequests import request
+from requests import request
 
 
 class SlackBot:
@@ -37,21 +37,27 @@ class SlackBot:
             raise Exception(response_json["error"])
 
     def poll(self):
-        if self._ws is None or not self._ws.connected():
-            response = request(
-                "POST",
-                "https://slack.com/api/apps.connections.open",
-                headers={"Authorization": f"Bearer {self._app_token}"},
-            )
+        while self._ws is None or not self._ws.connected():
+            try:
+                response = request(
+                    "POST",
+                    "https://slack.com/api/apps.connections.open",
+                    headers={"Authorization": f"Bearer {self._app_token}"},
+                )
 
-            open_json = response.json()
-            response.close()
+                open_json = response.json()
+                response.close()
 
-            ws_url = open_json["url"]
-            ws_url += "&debug_reconnects=true"
+                ws_url = open_json["url"]
+                ws_url += "&debug_reconnects=true"
 
-            self._ws = websocket_client.WebSocket()
-            self._ws.connect(ws_url)
+                self._ws = websocket_client.WebSocket()
+                self._ws.connect(ws_url)
+                
+
+
+            except:
+                print('Polling exception, retrying.')
 
         rx, rx_type = self._ws.recv()
         if rx is None:
@@ -64,7 +70,6 @@ class SlackBot:
 
         event = json.loads(rx)
         event_type = event["type"]
-
         return event
 
     def acknowledge_event(self, envelope_id, payload=None):

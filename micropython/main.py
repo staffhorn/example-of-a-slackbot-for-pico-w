@@ -5,6 +5,7 @@
 
 
 import network
+import requests
 
 from machine import Pin
 from slack_bot import SlackBot
@@ -15,6 +16,7 @@ led = Pin("LED")
 led.off()
 
 print(f"Connecting to Wi-Fi SSID: {config.WIFI_SSID}")
+led.on()
 
 # initialize the Wi-Fi interface
 wlan = network.WLAN(network.STA_IF)
@@ -51,20 +53,18 @@ while True:
             payload_event_type = event["payload"]["event"]["type"]
             payload_event_channel = event["payload"]["event"]["channel"]
             post_msg_text = None
+            slack_bot.acknowledge_event(envelope_id, ack_payload)
 
             if payload_event_type == "app_mention":
+
                 text = event["payload"]["event"]["text"]
 
                 print("app_mention", text)
 
-                if "led on" in text.lower():
-                    led.on()
-                    post_msg_text = "The LED is now on :bulb:"
-                elif "led off" in text.lower():
-                    led.off()
-                    post_msg_text = "The LED is now off"
+                if "what's new" in text.lower():
+                    today = requests.get(url="http://alderaan.local:8000/items").json()
+                    post_msg_text = f"```On this day in {today['year']}:\n{today['text']}```"
 
-            slack_bot.acknowledge_event(envelope_id, ack_payload)
 
             if post_msg_text is not None:
                 slack_bot.post_message(post_msg_text, payload_event_channel)
