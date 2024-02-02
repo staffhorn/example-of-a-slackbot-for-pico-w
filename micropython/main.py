@@ -6,13 +6,12 @@
 
 import network
 import requests
-
-from machine import Pin
-from slack_bot import SlackBot
-
+import time
+import machine
+import slack_bot
 import config
 
-led = Pin("LED")
+led = machine.Pin("LED")
 led.off()
 
 print(f"Connecting to Wi-Fi SSID: {config.WIFI_SSID}")
@@ -30,7 +29,7 @@ while not wlan.isconnected():
 
 print(f"Connected to Wi-Fi SSID: {config.WIFI_SSID}")
 
-slack_bot = SlackBot(config.SLACK_APP_TOKEN, config.SLACK_BOT_TOKEN)
+slack_bot = slack_bot.SlackBot(config.SLACK_APP_TOKEN, config.SLACK_BOT_TOKEN)
 
 while True:
     event = slack_bot.poll()

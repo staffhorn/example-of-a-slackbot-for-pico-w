@@ -8,7 +8,7 @@ import json
 
 import websocket_client
 
-from requests import request
+import request
 
 
 class SlackBot:
@@ -18,7 +18,7 @@ class SlackBot:
         self._ws = None
 
     def post_message(self, text, channel):
-        response = request(
+        response = request.request(
             "POST",
             "https://slack.com/api/chat.postMessage",
             headers={
